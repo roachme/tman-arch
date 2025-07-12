@@ -1,0 +1,145 @@
+#!/bin/bash
+
+PGNAME="tman-arch"
+VERSION="v0.0.1"
+COMMAND=
+TASKDIR=
+PRJNAME=
+BRDNAME=
+TASKNAME=
+ISDEBUG=false
+
+function die() {
+	echo "$PGNAME:" "$@" >&2
+	exit 1
+}
+
+
+function usage()
+{
+cat << EOF
+Usage: tman ${PGNAME/tman-/} [OPTION]...
+    arch        archive task directory
+    extract     extract task directory
+    help        show this help message and exit
+    list        list archived tasks
+EOF
+}
+
+function arch_arch()
+{
+    local uwd="$TASKDIR/$PRJNAME/$BRDNAME"
+    local src="$TASKNAME"
+    local dst="$TASKNAME.tar"
+
+    # Add check to archive only done tasks
+    if ! grep -q "column : done" "$uwd/$src/.tman/column"; then
+        die "'$TASKNAME': cannot archive non-done task $TASKNAME $?"
+    fi
+
+    cd "$uwd" || die "could not switch to directory '$uwd'"
+    if ! tar -cf "$dst" "$src"; then
+        die "could not create archive '$?'"
+    fi
+    rm -rf "$src"
+}
+
+function arch_extract()
+{
+    local uwd="$TASKDIR/$PRJNAME/$BRDNAME"
+    local src="$TASKNAME"
+    local dst="$TASKNAME.tar"
+
+    if [ ! -f "$uwd/$src.tar" ]; then
+        die "'$TASKNAME': no such archived task"
+    fi
+
+    cd "$uwd" || die "could not switch to directory '$uwd'"
+    if ! tar -xf "$dst"; then
+        die "could not create archive '$?'"
+    fi
+    rm -rf "$dst"
+}
+
+function arch_help()
+{
+    usage
+}
+
+function arch_list()
+{
+    local uwd="$TASKDIR/$PRJNAME/$BRDNAME"
+    find "$uwd" -name '*.tar' | while read -r arch; do
+        local mark="a"
+        local taskid="$(basename -s .tar "$arch")"
+        local mydesc="$(tar -xOf "$uwd/$taskid.tar" "$taskid/.tman/units" | grep desc | cut -f 2 -d ':')"
+
+        echo "$mark $taskid     $mydesc"
+    done
+}
+
+
+# Driver part of the code
+OPTS=$(getopt -o b:di:p:P:T:hV --long board:,debug,prj:,taskid:,pgndir:,taskdir:help,version -n "$PGNAME" -- "$@")
+if [ $? -ne 0 ]; then
+    #echo "error parsing options" >&2
+    exit 1
+fi
+
+## Reset the positional parameters to the parsed options
+eval set -- "$OPTS"
+
+while true; do
+    case "$1" in
+        -b)
+            BRDNAME="$2"
+            shift 2
+            ;;
+        -d)
+            ISDEBUG=true
+            shift 1
+            ;;
+        -i)
+            TASKNAME="$2"
+            shift 2
+            ;;
+        -p)
+            PRJNAME="$2"
+            shift 2
+            ;;
+        -P)
+            PGNDIRBASE="$2"
+            shift 2
+            ;;
+        -T)
+            TASKDIR="$2"
+            shift 2
+            ;;
+        -V)
+            echo "$PGNAME: $VERSION"
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            elog "invalid option '$1'"
+            exit 1
+    esac
+done
+
+# TODO: add default command (maybe)
+COMMAND="$1"; shift
+
+if [ "$COMMAND" = "arch" ]; then
+    arch_arch "$@"
+elif [ "$COMMAND" = "extract" ]; then
+    arch_extract "$@"
+elif [ -z "$COMMAND" ] || [ "$COMMAND" = "list" ]; then
+    arch_list "$@"
+elif [ "$COMMAND" = "help" ]; then
+    arch_help "$@"
+else
+    die "'$COMMAND': no such command"
+fi
