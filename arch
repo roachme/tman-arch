@@ -74,7 +74,7 @@ function arch_arch()
 
     # Add check to archive only done tasks
     if ! grep -q "column : done" "$uwd/$src/.tman/column"; then
-        die "'$TASKNAME': cannot archive non-done task $TASKNAME $?"
+        die "'$TASKNAME': cannot archive non-done task"
     fi
 
     cd "$uwd" || die "could not switch to directory '$uwd'"
