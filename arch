@@ -9,11 +9,17 @@ BRDNAME=
 TASKNAME=
 ISDEBUG=false
 
+# Colors
+COLOR_BGRN='\033[1;32m'
+COLOR_BMAG='\033[1;35m'
+COLOR_BWHT='\033[1;37m'
+COLOR_OFF='\033[0m'
+
+
 function die() {
 	echo "$PGNAME:" "$@" >&2
 	exit 1
 }
-
 
 function usage()
 {
@@ -110,7 +116,7 @@ function arch_list()
 
         # HOTFIX: Trim leading whitespace in description
         mydesc="${mydesc#${mydesc%%[![:space:]]*}}"
-        printf "%s %-10s %s\n" "$mark" "$taskid" "$mydesc"
+        printf "${COLOR_BGRN}%s${COLOR_OFF} ${COLOR_BMAG}%-10s${COLOR_OFF} ${COLOR_BWHT}%s${COLOR_OFF}\n" "$mark" "$taskid" "$mydesc"
     done
 }
 
@@ -170,6 +176,13 @@ COMMAND="$1"; shift
 
 check_args
 
+
+if [ ! -t 1 ]; then
+    COLOR_BGRN=''
+    COLOR_BMAG=''
+    COLOR_BWHT=''
+    COLOR_OFF=''
+fi
 
 if [ "$COMMAND" = "arch" ]; then
     arch_arch "$@"
