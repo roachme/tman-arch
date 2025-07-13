@@ -62,7 +62,7 @@ function check_args()
 {
     check_arg_prj
     check_arg_brd
-    check_arg_task
+    #check_arg_task
 }
 
 
