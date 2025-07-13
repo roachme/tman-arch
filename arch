@@ -25,6 +25,40 @@ Usage: tman ${PGNAME/tman-/} [OPTION]...
     list        list archived tasks
 EOF
 }
+function check_arg_prj()
+{
+    if [ -z "$PRJNAME" ]; then
+        die "no project name is passed"
+    elif [ ! -d "$TASKDIR/$PRJNAME" ]; then
+        die "'$PRJNAME': no such project name"
+    fi
+}
+
+function check_arg_brd()
+{
+    if [ -z "$BRDNAME" ]; then
+        die "no board name is passed"
+    elif [ ! -d "$TASKDIR/$PRJNAME/$BRDNAME" ]; then
+        die "'$BRDNAME': no such board name"
+    fi
+}
+
+function check_arg_task()
+{
+    if [ -z "$TASKNAME" ]; then
+        die "no task ID is passed"
+    elif [ ! -d "$TASKDIR/$PRJNAME/$BRDNAME/$TASKNAME" ]; then
+        die "'$TASKNAME': no such task ID"
+    fi
+}
+
+function check_args()
+{
+    check_arg_prj
+    check_arg_brd
+    check_arg_task
+}
+
 
 function arch_arch()
 {
@@ -131,6 +165,9 @@ done
 
 # TODO: add default command (maybe)
 COMMAND="$1"; shift
+
+check_args
+
 
 if [ "$COMMAND" = "arch" ]; then
     arch_arch "$@"
