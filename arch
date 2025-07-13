@@ -108,7 +108,7 @@ function arch_list()
         local taskid="$(basename -s .tar "$arch")"
         local mydesc="$(tar -xOf "$uwd/$taskid.tar" "$taskid/.tman/units" | grep desc | cut -f 2 -d ':')"
 
-        echo "$mark $taskid     $mydesc"
+        printf "%s %-10s %s\n" "$mark" "$taskid" "$mydesc"
     done
 }
 
